@@ -1,86 +1,103 @@
-{% extends "base.html" %}
-
-{% block title %}Admin Panel{% endblock %}
-
-{% block content %}
+{% extends "base.html" %} {% block title %}Admin Panel{% endblock %} {% block
+content %}
 <h1 class="mb-4">관리자 패널</h1>
 
 <div class="row">
-    <div class="col-md-6">
-        <div class="card mb-4">
-            <div class="card-body">
-                <h5 class="card-title">크롤링 상태</h5>
-                <ul class="list-group list-group-flush">
-                    <li class="list-group-item">마지막 크롤링: <span id="last-crawled">로딩 중...</span></li>
-                    <li class="list-group-item">총 게시물 수: <span id="total-posts">로딩 중...</span></li>
-                    <li class="list-group-item">총 댓글 수: <span id="total-comments">로딩 중...</span></li>
-                </ul>
-            </div>
-        </div>
+  <div class="col-md-6">
+    <div class="card mb-4">
+      <div class="card-body">
+        <h5 class="card-title">크롤링 상태</h5>
+        <ul class="list-group list-group-flush">
+          <li class="list-group-item">
+            마지막 크롤링: <span id="last-crawled">로딩 중...</span>
+          </li>
+          <li class="list-group-item">
+            총 게시물 수: <span id="total-posts">로딩 중...</span>
+          </li>
+          <li class="list-group-item">
+            총 댓글 수: <span id="total-comments">로딩 중...</span>
+          </li>
+        </ul>
+      </div>
     </div>
-    <div class="col-md-6">
-        <div class="card mb-4">
-            <div class="card-body">
-                <h5 class="card-title">크롤링 시작</h5>
-                <form id="crawl-form">
-                    <div class="mb-3">
-                        <label for="crawl-type" class="form-label">크롤링 유형</label>
-                        <select class="form-select" id="crawl-type" required>
-                            <option value="gallery">갤러리</option>
-                            <option value="comments">댓글</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="target-url" class="form-label">대상 URL</label>
-                        <input type="url" class="form-control" id="target-url" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary">크롤링 시작</button>
-                </form>
-            </div>
-        </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card mb-4">
+      <div class="card-body">
+        <h5 class="card-title">크롤링 시작</h5>
+        <form id="crawl-form">
+          <div class="mb-3">
+            <label for="crawl-type" class="form-label">크롤링 유형</label>
+            <select class="form-select" id="crawl-type" required>
+              <option value="gallery">갤러리</option>
+              <option value="comments">댓글</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="target-url" class="form-label">대상 URL</label>
+            <input
+              type="url"
+              class="form-control"
+              id="target-url"
+              required
+              value="https://gall.dcinside.com/mgallery/board/lists/?id=vr"
+            />
+          </div>
+          <button type="submit" class="btn btn-primary">크롤링 시작</button>
+        </form>
+      </div>
     </div>
+  </div>
 </div>
 
 <div class="card mb-4">
-    <div class="card-body">
-        <h5 class="card-title">데이터 내보내기</h5>
-        <a href="{{ url_for('admin.export_csv') }}" class="btn btn-success">CSV 내보내기</a>
-    </div>
+  <div class="card-body">
+    <h5 class="card-title">데이터 내보내기</h5>
+    <a href="{{ url_for('admin.export_csv') }}" class="btn btn-success"
+      >CSV 내보내기</a
+    >
+  </div>
 </div>
 
 <script>
-    function updateCrawlingStatus() {
-        fetch('/admin/crawling_status')
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById('last-crawled').textContent = data.last_crawled;
-                document.getElementById('total-posts').textContent = data.total_posts;
-                document.getElementById('total-comments').textContent = data.total_comments;
-            });
-    }
+  function updateCrawlingStatus() {
+    fetch("/admin/crawling_status")
+      .then((response) => response.json())
+      .then((data) => {
+        document.getElementById("last-crawled").textContent = data.last_crawled;
+        document.getElementById("total-posts").textContent = data.total_posts;
+        document.getElementById("total-comments").textContent =
+          data.total_comments;
+      });
+  }
 
-    document.getElementById('crawl-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const formData = new FormData();
-        formData.append('type', document.getElementById('crawl-type').value);
-        formData.append('target_url', document.getElementById('target-url').value);
+  document
+    .getElementById("crawl-form")
+    .addEventListener("submit", function (e) {
+      e.preventDefault();
+      const formData = new FormData();
+      formData.append("type", document.getElementById("crawl-type").value);
+      formData.append(
+        "target_url",
+        document.getElementById("target-url").value
+      );
 
-        fetch('/admin/start_crawling', {
-            method: 'POST',
-            body: formData
+      fetch("/admin/start_crawling", {
+        method: "POST",
+        body: formData,
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          alert(data.message);
+          updateCrawlingStatus();
         })
-        .then(response => response.json())
-        .then(data => {
-            alert(data.message);
-            updateCrawlingStatus();
-        })
-        .catch(error => {
-            alert('크롤링 시작 중 오류가 발생했습니다.');
-            console.error('Error:', error);
+        .catch((error) => {
+          alert("크롤링 시작 중 오류가 발생했습니다.");
+          console.error("Error:", error);
         });
     });
 
-    updateCrawlingStatus();
-    setInterval(updateCrawlingStatus, 60000);  // 1분마다 상태 업데이트
+  updateCrawlingStatus();
+  setInterval(updateCrawlingStatus, 60000); // 1분마다 상태 업데이트
 </script>
 {% endblock %}

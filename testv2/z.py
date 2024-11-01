@@ -23,13 +23,13 @@ def crawl_comments(url):
     driver.get(url)
     
     # 댓글 영역이 로드될 때까지 대기
-    WebDriverWait(driver, 10).until(
+    WebDriverWait(driver, 2).until(
         EC.presence_of_element_located((By.CLASS_NAME, "view_comment"))
     )
     
     # 페이지 스크롤
     driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-    time.sleep(2)  # 댓글이 모두 로드될 때까지 기다림
+    # time.sleep(2)  # 댓글이 모두 로드될 때까지 기다림
     
     # 페이지 소스 가져오기
     page_source = driver.page_source

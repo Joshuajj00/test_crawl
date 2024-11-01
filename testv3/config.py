@@ -7,6 +7,8 @@ DATA_DIR = os.path.join(BASE_DIR, 'dc_gallery_data')
 
 # 갤러리 URL
 GALLERY_URL = "https://gall.dcinside.com/mgallery/board/lists/?id=vr"
+# 포스팅할 갤러리 최소넘버
+MIN_POSTING_ID = 4243000
 
 # 출력 폴더 설정
 OUTPUT_FOLDER = os.path.join(DATA_DIR, "output")

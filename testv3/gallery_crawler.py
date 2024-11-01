@@ -9,8 +9,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
-import re
-from config import HEADERS, DELAY, MAX_PAGES
+from config import HEADERS, DELAY, MAX_PAGES, MIN_POSTING_ID
 from database import get_db
 from image_manager import manage_image, download_image
 from comment_crawler import crawl_comments
@@ -21,7 +20,7 @@ logger = logging.getLogger(__name__)
 def setup_driver():
     logger.debug("Chrome driver 설정 중...")
     options = webdriver.ChromeOptions()
-    options.add_argument('--headless')
+    # options.add_argument('--headless')
     options.add_argument('--no-sandbox')
     options.add_argument('--disable-dev-shm-usage')
     
@@ -29,12 +28,22 @@ def setup_driver():
     driver = webdriver.Chrome(service=service, options=options)
     logger.debug("Chrome driver 설정 완료.")
     return driver
+   
+def is_document_loaded(driver):
+    logger.info("Checking if {} page is loaded.".format(driver.current_url))
+    page_state = driver.execute_script('return document.readyState;')
+    return page_state == 'complete'
 
-"""def crawl_comments(post_url, post_number):
+def wait_until_document_loaded(driver):
+    WebDriverWait(driver, 2).until(
+        lambda driver: driver.execute_script('return document.readyState') == 'complete'
+    )
+
+def crawl_comments(post_url, post_number):
     driver = setup_driver()
     try:
         driver.get(post_url)
-        time.sleep(2)  # 페이지 로딩 대기
+        wait_until_document_loaded(driver);
 
         comments = []
         comment_elements = driver.find_elements(By.CSS_SELECTOR, '.reply_content')
@@ -53,7 +62,8 @@ def setup_driver():
 
         return comments
     finally:
-        driver.quit()"""
+        driver.quit()
+
 
 def crawl_post_content(post_url, post_number):
     logger.debug(f"게시물 내용 크롤링 시작: {post_url}")
@@ -72,7 +82,7 @@ def crawl_post_content(post_url, post_number):
         if file_box:
             for file_link in file_box.select('li a'):
                 file_url = file_link['href']
-                if file_url.lower().endswith(('.png', '.jpg', '.jpeg', '.gif')):
+                if file_url.lower().endswith(('.png', '.jpg', '.jpeg', '.gif','.webp')):
                     image_urls.append(file_url)
         
         logger.debug(f"게시물 {post_number}에서 발견된 이미지 수: {len(image_urls)}")
@@ -80,7 +90,7 @@ def crawl_post_content(post_url, post_number):
         image_paths = []
         for index, image_url in enumerate(image_urls):
             logger.debug(f"이미지 발견: URL: {image_url}")
-            image_path = download_image(image_url, post_number, f"image_{index}")
+            image_path = download_image(image_url, post_number, index, HEADERS)
             if image_path:
                 image_paths.append(image_path)
         
@@ -105,8 +115,8 @@ def crawl_gallery_page(url, db):
         
         try:
             post_number = int(post['number'])
-            if post_number < 4243000:
-                logger.info(f"글번호 {post_number}는 4243000 미만이므로 건너뜁니다.")
+            if post_number < MIN_POSTING_ID:
+                logger.info(f"글번호 {post_number}는 {MIN_POSTING_ID} 미만이므로 건너뜁니다.")
                 continue
         except ValueError:
             logger.warning(f"글번호를 숫자로 변환할 수 없습니다: {post['number']}")
