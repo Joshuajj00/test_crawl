@@ -41,27 +41,24 @@ def manage_image(post_id, file_path):
             os.remove(file_path)
         return None
 
-def download_image(image_url, post_number, original_filename):
-    response = requests.get(image_url)
-    if response.status_code == 200:
-        # 파일 확장자 추출
-        _, ext = os.path.splitext(original_filename)
-        if not ext:
-            ext = '.jpg'  # 기본 확장자 설정
-        
-        # 새 파일 이름 생성 (중복 방지)
-        new_filename = f"{post_number}_{original_filename}"
-        file_path = os.path.join(IMAGES_FOLDER, new_filename)
-        
-        # 파일 이름 중복 확인 및 처리
-        counter = 1
-        while os.path.exists(file_path):
-            name, ext = os.path.splitext(new_filename)
-            new_filename = f"{name}_{counter}{ext}"
-            file_path = os.path.join(IMAGES_FOLDER, new_filename)
-            counter += 1
+def download_image(image_url, post_number, file_index, headers):
+    # 파일 이름 및 저장할 경로 정하기
+    filename, ext = os.path.splitext(image_url)
+    if not ext:
+        ext = '.jpg'  # 기본 확장자 설정
+    
+    # 다운받을 이름맟 파일
+    created_file_name = f"{post_number}_image_{file_index}{ext}"
+    created_file_path = os.path.join(IMAGES_FOLDER, created_file_name);
+    if os.path.exists(created_file_path):
+        return created_file_path;
+    
 
-        with open(file_path, 'wb') as f:
+    response = requests.get(image_url,headers = HEADERS);
+    logger.info(f"content: {response.content}");
+
+    if response.status_code == 200:
+        with open(created_file_path, 'wb') as f:
             f.write(response.content)
-        return new_filename  # 파일 이름만 반환
+        return created_file_name  # 파일 이름만 반환
     return None
