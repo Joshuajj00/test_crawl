@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block title %}검색 결과 - DCInside Crawler{% endblock %}
+{% block content %}
+<h1>검색 결과: "{{ query }}"</h1>
+{% if posts.items %}
+<table class="table">
+    <thead>
+        <tr>
+            <th>갤러리</th>
+            <th>제목</th>
+            <th>작성자</th>
+            <th>작성일</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for post in posts.items %}
+        <tr>
+            <td>{{ post.gallery.name }}</td>
+            <td><a href="{{ url_for('post_detail', post_id=post.id) }}">{{ post.title }}</a></td>
+            <td>{{ post.author }}</td>
+            <td>{{ post.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<nav aria-label="Page navigation">
+    <ul class="pagination">
+        {% for page in posts.iter_pages() %}
+            {% if page %}
+                <li class="page-item {% if page == posts.page %}active{% endif %}">
+                    <a class="page-link" href="{{ url_for('search', q=query, page=page) }}">{{ page }}</a>
+                </li>
+            {% else %}
+                <li class="page-item disabled"><span class="page-link">...</span></li>
+            {% endif %}
+        {% endfor %}
+    </ul>
+</nav>
+{% else %}
+<p>검색 결과가 없습니다.</p>
+{% endif %}
+{% endblock %}

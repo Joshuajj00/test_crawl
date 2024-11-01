@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block title %}홈 - DCInside Crawler{% endblock %}
+{% block content %}
+<h1>DCInside 크롤러에 오신 것을 환영합니다.</h1>
+<div class="row">
+    {% for gallery in galleries %}
+    <div class="col-md-4 mb-3">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{{ gallery.name }}</h5>
+                <p class="card-text">{{ gallery.description }}</p>
+                <a href="{{ url_for('gallery_posts', gallery_id=gallery.id) }}" class="btn btn-primary">게시물 보기</a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

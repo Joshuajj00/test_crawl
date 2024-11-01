@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+{% block title %}관리자 대시보드 - DCInside Crawler{% endblock %}
+{% block content %}
+<h1>관리자 대시보드</h1>
+
+<h2>갤러리 추가</h2>
+<form action="{{ url_for('add_gallery') }}" method="post">
+    <div class="mb-3">
+        <label for="name" class="form-label">갤러리 이름</label>
+        <input type="text" class="form-control" id="name" name="name" required>
+    </div>
+    <div class="mb-3">
+        <label for="url" class="form-label">갤러리 URL</label>
+        <input type="url" class="form-control" id="url" name="url" required>
+    </div>
+    <div class="mb-3">
+        <label for="gallery_id" class="form-label">갤러리 ID</label>
+        <input type="text" class="form-control" id="gallery_id" name="gallery_id" required>
+    </div>
+    <button type="submit" class="btn btn-primary">갤러리 추가</button>
+</form>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div class="alert alert-{{ category }}">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+
+<h2>크롤링 상태</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>갤러리 이름</th>
+            <th>마지막 크롤링</th>
+            <th>총 게시물 수</th>
+            <th>액션</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for gallery in galleries %}
+        <tr>
+            <td>{{ gallery.name }}</td>
+            <td>{{ gallery.last_crawled_at.strftime('%Y-%m-%d %H:%M') if gallery.last_crawled_at else '없음' }}</td>
+            <td>{{ gallery.posts|length }}</td>
+            <td>
+                <button class="btn btn-primary btn-sm" onclick="startCrawling('{{ gallery.id }}')">크롤링 시작</button>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<h2>최근 크롤링 작업</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>갤러리 ID</th>
+            <th>상태</th>
+            <th>시작 시간</th>
+            <th>완료 시간</th>
+            <th>에러 메시지</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for task in tasks %}
+        <tr>
+            <td>{{ task.gallery_id }}</td>
+            <td>{{ task.status }}</td>
+            <td>{{ task.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+            <td>{{ task.completed_at.strftime('%Y-%m-%d %H:%M') if task.completed_at else '-' }}</td>
+            <td>{{ task.error_message or '-' }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<h2>시스템 상태</h2>
+<p>현재 실행 중인 작업: <span id="running-tasks">0</span></p>
+<p>대기 중인 작업: <span id="pending-tasks">0</span></p>
+
+{% block extra_js %}
+<script>
+function startCrawling(galleryId) {
+    fetch(`/api/start_crawling/${galleryId}`, {method: 'POST'})
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('크롤링이 시작되었습니다.');
+                location.reload();
+            } else {
+                alert('크롤링 시작에 실패했습니다: ' + data.error);
+            }
+        });
+}
+
+function updateStatus() {
+    fetch('/api/crawling_status')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('running-tasks').textContent = data.running_tasks;
+            document.getElementById('pending-tasks').textContent = data.pending_tasks;
+        });
+}
+
+setInterval(updateStatus, 5000);  // 5초마다 상태 업데이트
+</script>
+{% endblock %}
+{% endblock %}

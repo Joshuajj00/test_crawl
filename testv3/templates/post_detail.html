@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>{{ post['title'] }}</h1>
+<div class="post-info">
+    <p>작성자: {{ post['author'] }} | 작성일: {{ post['date'] }} | 조회수: {{ post['views'] }} | 추천수: {{ post['votes'] }} | 댓글수: {{ post['comment_count'] }}</p>
+</div>
+<div class="post-content">
+    {{ post['content']|safe }}
+</div>
+
+{% if images %}
+<h2>첨부 이미지</h2>
+<div class="post-images">
+    {% for image in images %}
+        <img src="{{ url_for('serve_image', filename=image['file_path']) }}" alt="첨부 이미지">
+    {% endfor %}
+</div>
+{% endif %}
+
+<h2>댓글 ({{ comments|length }})</h2>
+{% for comment in comments %}
+    <div class="comment">
+        <p><strong>{{ comment['author'] }}</strong> - {{ comment['date'] }}</p>
+        <p>{{ comment['content'] }}</p>
+    </div>
+{% else %}
+    <p>댓글이 없습니다.</p>
+{% endfor %}
+{% endblock %}
